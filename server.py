@@ -26,13 +26,17 @@ def save_to_csv(log_data, file_path='chat_log.csv'):
             writer.writeheader()
         writer.writerow(log_data)
 
-# POST 요청 처리 (GPT Webhook)
 @app.post("/log")
-async def log_handler(data: LogData):
-    log_dict = data.dict()
-    save_to_csv(log_dict)
-    print("✅ Webhook 수신됨:", log_dict)
-    return {"message": "로그 저장 완료"}
+async def log_handler(payload: dict):
+    try:
+        data = payload["추천결과"]
+        log_data = LogData(**data)  # Pydantic 검증
+        save_to_csv(log_data.dict())
+        print("✅ Webhook 수신됨:", log_data.dict())
+        return {"message": "로그 저장 완료"}
+    except Exception as e:
+        print("❌ 로그 저장 실패:", e)
+        return {"error": str(e)}
 
 # GET 요청 대응 (브라우저 접속 안내)
 @app.get("/log")
